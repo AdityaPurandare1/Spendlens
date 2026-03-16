@@ -289,6 +289,46 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
 .card-type-badge.credit{background:rgba(108,92,231,0.15);color:var(--accent)}
 .card-type-badge.debit{background:rgba(0,210,160,0.15);color:var(--green)}
 
+/* ===== CARDS PAGE ===== */
+.card-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+.card-full::before{content:'';position:absolute;top:0;left:0;width:6px;height:100%;border-radius:var(--radius) 0 0 var(--radius)}
+.card-full-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.card-full-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-full-name{font-size:16px;font-weight:700}
+.card-full-sub{font-size:12px;color:var(--text-dim);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.card-full-edit{margin-left:auto;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+.card-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.card-stat{background:var(--bg);border-radius:8px;padding:10px 12px}
+.card-stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px}
+.card-stat-value{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;margin-top:4px}
+.card-credit-bar{margin-bottom:16px}
+.card-credit-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:6px}
+.card-credit-bar-track{height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
+.card-credit-bar-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
+.card-payment-row{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:10px;margin-bottom:10px;cursor:pointer}
+.card-payment-icon{font-size:20px;flex-shrink:0}
+.card-payment-label{font-size:13px;color:var(--text-dim)}
+.card-payment-value{font-size:14px;font-weight:600;margin-top:2px}
+.card-payment-action{margin-left:auto;font-size:12px;color:var(--accent);font-weight:600}
+.payment-alert{display:none;margin:0 20px 14px;padding:14px 16px;border-radius:var(--radius-sm);background:linear-gradient(135deg,rgba(255,107,107,0.12),rgba(255,107,107,0.06));border:1px solid rgba(255,107,107,0.35);gap:10px;align-items:flex-start}
+.payment-alert.visible{display:flex}
+.payment-alert.warn{background:linear-gradient(135deg,rgba(255,212,59,0.12),rgba(255,212,59,0.06));border-color:rgba(255,212,59,0.35)}
+.payment-alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.payment-alert-text{flex:1;font-size:13px;line-height:1.5;color:var(--text-dim)}
+.payment-alert-text strong{color:var(--text);display:block;margin-bottom:2px}
+.predict-bar{margin-top:10px}
+.predict-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px}
+.predict-bar-track{height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden}
+.predict-bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease;background:var(--blue)}
+.predict-bar-fill.warn{background:var(--amber)}
+.predict-bar-fill.over{background:var(--red)}
+.payment-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border-radius:8px;margin-bottom:6px}
+.payment-item-left{display:flex;align-items:center;gap:10px}
+.payment-item-icon{font-size:16px}
+.payment-item-date{font-size:13px;font-weight:500}
+.payment-item-src{font-size:11px;color:var(--text-muted);margin-top:2px}
+.payment-item-amount{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--green)}
+
 ::-webkit-scrollbar{width:0;height:0}
 </style>
 </head>
@@ -330,6 +370,13 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
   <span class="yesterday-banner-close" onclick="document.getElementById('yesterdayBanner').classList.remove('visible')">✕</span>
 </div>
 
+<!-- Payment Due Alerts (shown on dashboard) -->
+<div class="payment-alert" id="paymentAlertBanner">
+  <div class="payment-alert-icon" id="payAlertIcon">🔔</div>
+  <div class="payment-alert-text" id="payAlertText"></div>
+  <span style="cursor:pointer;color:var(--text-muted);font-size:16px;padding:2px 4px" onclick="this.parentElement.classList.remove('visible')">✕</span>
+</div>
+
 <!-- ============ DASHBOARD ============ -->
 <div class="page active" id="pageDashboard">
 <div class="content">
@@ -359,6 +406,10 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
     <div class="budget-progress" id="totalBudgetProgress" style="display:none">
       <div class="budget-progress-label"><span id="budgetSpentLabel"></span><span id="budgetLimitLabel"></span></div>
       <div class="budget-progress-bar"><div class="budget-progress-fill" id="budgetProgressFill"></div></div>
+    </div>
+    <div class="predict-bar" id="predictBar" style="display:none">
+      <div class="predict-bar-label"><span id="predictSpentLabel"></span><span id="predictedLabel"></span></div>
+      <div class="predict-bar-track"><div class="predict-bar-fill" id="predictBarFill"></div></div>
     </div>
   </div>
 
@@ -390,6 +441,17 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
     <div class="section-title">Transactions</div>
     <div id="transactionsList"></div>
   </div>
+</div>
+</div>
+
+<!-- ============ CARDS PAGE ============ -->
+<div class="page" id="pageCards">
+<div class="content" style="padding-top:16px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div class="section-title" style="margin:0">My Cards</div>
+    <button class="icon-btn" style="font-size:14px;width:auto;padding:0 14px;height:36px" onclick="openAddCardModal()">+ Add Card</button>
+  </div>
+  <div id="cardsPageList"></div>
 </div>
 </div>
 
@@ -561,6 +623,14 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
       </div>
     </div>
     <div class="form-group">
+      <label class="form-label">Credit Limit ($) <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+      <input type="number" class="form-input" id="newCardLimit" placeholder="e.g. 10000" step="100" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Payment Due Day <span style="color:var(--text-muted);font-weight:400">(day of month)</span></label>
+      <input type="number" class="form-input" id="newCardPayDay" placeholder="e.g. 25" min="1" max="31" inputmode="numeric">
+    </div>
+    <div class="form-group">
       <label class="form-label">Card Color</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap" id="colorPicker"></div>
     </div>
@@ -616,6 +686,10 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
       </div>
     </div>
     <div class="form-group">
+      <label class="form-label">Billing Day <span style="color:var(--text-muted);font-weight:400">(day of month it debits)</span></label>
+      <input type="number" class="form-input" id="subDebitDay" placeholder="e.g. 1" min="1" max="31" inputmode="numeric">
+    </div>
+    <div class="form-group">
       <label class="form-label">Category</label>
       <select class="form-input" id="subCategory"></select>
     </div>
@@ -628,8 +702,8 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:v
   <button class="nav-item active" onclick="showPage('pageDashboard',this)" data-page="pageDashboard">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
   </button>
-  <button class="nav-item" onclick="showPage('pageBudget',this)" data-page="pageBudget">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Budget
+  <button class="nav-item" onclick="showPage('pageCards',this)" data-page="pageCards">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cards
   </button>
   <button class="nav-add" onclick="openAddModal()">+</button>
   <button class="nav-item" onclick="showPage('pageOptimizer',this)" data-page="pageOptimizer">
@@ -773,8 +847,9 @@ const CATEGORIES = [
 // ============================================================
 let CARDS = [];
 let transactions = [];
-let budgets = {};       // { 'overall': 3000, 'amex': 1500, 'capital-one-Venture': 800 }
-let subscriptions = []; // [{ id, name, amount, cardId, cycle, category, active }]
+let budgets = {};
+let subscriptions = [];
+let cardPayments = {}; // { cardId: [{date, amount, source}] }
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let selectedCard = 'all';
@@ -855,6 +930,7 @@ function loadFromStorage() {
       merchantRules = d.merchantRules || {};
       nightlySyncEnabled = d.nightlySyncEnabled || false;
       yesterdayDismissed = d.yesterdayDismissed || false;
+      cardPayments = d.cardPayments || {};
     }
   } catch(e) {}
 }
@@ -865,7 +941,7 @@ function saveToStorage() {
       transactions, cards: CARDS, budgets, subscriptions,
       nextId, nextCardId, nextSubId, syncHistory,
       processedEmailIds: [...processedEmailIds],
-      gmailUser, merchantRules, nightlySyncEnabled, yesterdayDismissed,
+      gmailUser, merchantRules, nightlySyncEnabled, yesterdayDismissed, cardPayments,
     }));
   } catch(e) {}
 }
@@ -1052,6 +1128,27 @@ async function syncGmail(silent = false) {
         if (processedEmailIds.has(msgId)) continue;
         const msg = await fetchGmailMessage(msgId);
         if (!msg) continue;
+
+        // Try payment email first
+        let bodyText = '';
+        function extractBodyForPayment(part) {
+          if (!part) return;
+          if (part.mimeType === 'text/plain' && part.body?.data) bodyText += decodeBase64(part.body.data) + ' ';
+          else if (part.mimeType === 'text/html' && part.body?.data && !bodyText) bodyText += decodeBase64(part.body.data).replace(/<[^>]+>/g,' ') + ' ';
+          if (part.parts) part.parts.forEach(extractBodyForPayment);
+        }
+        extractBodyForPayment(msg.payload);
+        const headers = msg.payload?.headers || [];
+        const subject = headers.find(h=>h.name==='Subject')?.value||'';
+        const dateHeader = headers.find(h=>h.name==='Date')?.value||'';
+        const fullForPayment = (subject + ' ' + bodyText).replace(/\s+/g,' ');
+        const payment = parsePaymentEmail(fullForPayment, dateHeader, issuer, issuerCards);
+        if (payment) {
+          savePayment(payment.cardId, 'gmail', payment.amount, payment.date);
+          processedEmailIds.add(msgId);
+          continue;
+        }
+
         const tx = parseEmailToTransaction(msg, issuer, issuerCards);
         if (tx) {
           transactions.push(tx);
@@ -1515,6 +1612,8 @@ function openAddCardModal() {
   document.getElementById('newCardName').innerHTML = '<option value="">Select or type card name...</option>';
   document.getElementById('newCardCustomName').value = '';
   document.getElementById('newCardLast4').value = '';
+  document.getElementById('newCardLimit').value = '';
+  document.getElementById('newCardPayDay').value = '';
   newCardType = 'credit';
   newCardColor = '#6c5ce7';
   document.getElementById('cardTypeCredit').classList.add('selected');
@@ -1554,10 +1653,12 @@ function saveNewCard() {
   const cardName = document.getElementById('newCardName').value;
   const customName = document.getElementById('newCardCustomName').value.trim();
   const last4 = document.getElementById('newCardLast4').value.trim();
+  const limit = parseFloat(document.getElementById('newCardLimit').value) || 0;
+  const payDay = parseInt(document.getElementById('newCardPayDay').value) || 0;
   if (!issuer || !last4 || last4.length !== 4) { alert('Please fill issuer and last 4 digits'); return; }
   const name = customName || cardName || `${issuer} Card`;
   const id = `${issuer}-${last4}-${nextCardId++}`;
-  CARDS.push({ id, issuer, name, last4, color: newCardColor, type: newCardType });
+  CARDS.push({ id, issuer, name, last4, color: newCardColor, type: newCardType, creditLimit: limit, payDay });
   saveToStorage();
   closeModal('addCardModal');
   renderAll();
@@ -1568,6 +1669,7 @@ function saveNewCard() {
 function openEditCardModal(cardId) {
   const card = CARDS.find(c => c.id === cardId);
   if (!card) return;
+  const payments = (cardPayments[cardId] || []).slice(0,5);
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay open';
   overlay.id = 'editCardOverlay';
@@ -1580,17 +1682,36 @@ function openEditCardModal(cardId) {
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
         <div style="width:14px;height:44px;border-radius:4px;background:${card.color}"></div>
-        <div>
-          <div style="font-size:16px;font-weight:600">${card.name}</div>
-          <div style="font-size:13px;color:var(--text-dim)">•••• ${card.last4} · ${card.type||'credit'}</div>
-        </div>
+        <div><div style="font-size:16px;font-weight:600">${card.name}</div>
+        <div style="font-size:13px;color:var(--text-dim)">•••• ${card.last4} · ${card.type||'credit'}</div></div>
       </div>
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px">
-        ${getCardRewardsHTML(card)}
+      <div class="form-group">
+        <label class="form-label">Credit Limit ($)</label>
+        <input type="number" class="form-input" id="editCardLimit" value="${card.creditLimit||''}" placeholder="e.g. 10000" step="100" inputmode="decimal">
       </div>
-      <button class="submit-btn danger" style="font-size:14px;padding:12px" onclick="removeCard('${cardId}')">Remove Card</button>
+      <div class="form-group">
+        <label class="form-label">Payment Due Day</label>
+        <input type="number" class="form-input" id="editCardPayDay" value="${card.payDay||''}" placeholder="e.g. 25" min="1" max="31" inputmode="numeric">
+      </div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px">${getCardRewardsHTML(card)}</div>
+      <button class="submit-btn" style="font-size:14px;padding:12px;margin-bottom:10px" onclick="saveEditCard('${cardId}')">Save Changes</button>
+      <button class="submit-btn" style="font-size:14px;padding:12px;background:transparent;border:1px solid var(--border);color:var(--text-dim)" onclick="openLogPaymentModal('${cardId}')">💳 Log a Payment</button>
+      ${payments.length>0?`<div style="margin-top:16px"><div class="form-label" style="margin-bottom:8px">Recent Payments</div>${payments.map(p=>`<div class="payment-item"><div class="payment-item-left"><div class="payment-item-icon">✅</div><div><div class="payment-item-date">${p.date}</div><div class="payment-item-src">${p.source==='gmail'?'📧 Gmail':'✏️ Manual'}</div></div></div><div class="payment-item-amount">+$${p.amount.toFixed(2)}</div></div>`).join('')}</div>`:''}
+      <button class="submit-btn danger" style="font-size:14px;padding:12px;margin-top:10px" onclick="removeCard('${cardId}')">Remove Card</button>
     </div>`;
   document.body.appendChild(overlay);
+}
+
+function saveEditCard(cardId) {
+  const card = CARDS.find(c => c.id === cardId);
+  if (!card) return;
+  card.creditLimit = parseFloat(document.getElementById('editCardLimit').value) || 0;
+  card.payDay = parseInt(document.getElementById('editCardPayDay').value) || 0;
+  saveToStorage();
+  document.getElementById('editCardOverlay')?.remove();
+  renderAll();
+  renderCardsPage();
+  showSyncBar('success', '💳', 'Card updated');
 }
 
 function getCardRewardsHTML(card) {
@@ -1740,7 +1861,7 @@ function renderSubscriptions() {
       <div class="sub-icon" style="background:${cat?.color||'var(--accent)'}22">${cat?.icon||'📦'}</div>
       <div class="sub-info">
         <div class="sub-name">${sub.name} ${sub.autoDetected?'<span class="tx-sub-badge">Auto-detected</span>':''}</div>
-        <div class="sub-meta">${card?.name||'Unknown'} · ${sub.cycle}</div>
+        <div class="sub-meta">${card?.name||'Unknown'} · ${sub.cycle}${sub.debitDay?' · Bills day '+sub.debitDay:''}</div>
       </div>
       <div class="sub-amount">$${sub.amount.toFixed(2)}<span style="font-size:11px;color:var(--text-muted)">/${sub.cycle==='yearly'?'yr':'mo'}</span></div>
       <div class="sub-actions">
@@ -1775,8 +1896,9 @@ function saveSubscription() {
   const amount = parseFloat(document.getElementById('subAmount').value);
   const cardId = document.getElementById('subCard').value;
   const category = document.getElementById('subCategory').value;
+  const debitDay = parseInt(document.getElementById('subDebitDay').value) || 1;
   if (!name || !amount) { alert('Please fill name and amount'); return; }
-  subscriptions.push({ id: nextSubId++, name, amount, cardId, cycle: subCycle, category, active: true, autoDetected: false });
+  subscriptions.push({ id: nextSubId++, name, amount, cardId, cycle: subCycle, category, active: true, autoDetected: false, debitDay });
   saveToStorage();
   closeModal('addSubModal');
   renderSubscriptions();
@@ -1926,6 +2048,9 @@ function renderAll() {
   renderTotal(f); renderCards(); renderTrendChart(); renderDailyChart(f);
   renderCategories(f); renderTransactions(f);
   renderSyncHistory(); renderSettingsCards();
+  renderPredictedSpend(f);
+  checkPaymentAlerts();
+  autoPostSubscriptions();
 }
 
 function renderTotal(f) {
@@ -2190,6 +2315,7 @@ function showPage(id, btn) {
 
   if (id==='pageOptimizer') { renderInsights(getFiltered()); renderOptimizer(); }
   if (id==='pageBudget') { renderBudgets(); renderSubscriptions(); }
+  if (id==='pageCards') { renderCardsPage(); }
   if (id==='pageSettings') { renderSettingsGmailSection(); renderSyncHistory(); renderSettingsCards(); updateNightlySyncUI(); }
 }
 
@@ -2209,6 +2335,302 @@ function clearAllData() {
     saveToStorage(); location.reload();
   }
 }
+
+// ============================================================
+// CARDS PAGE — full detail view
+// ============================================================
+function renderCardsPage() {
+  const el = document.getElementById('cardsPageList');
+  if (!el) return;
+  if (CARDS.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💳</div>
+      <div class="empty-state-title">No cards yet</div>
+      <div class="empty-state-desc">Tap "+ Add Card" to get started</div></div>`;
+    return;
+  }
+  el.innerHTML = CARDS.map(card => {
+    const monthTx = getMonthTransactions(currentYear, currentMonth, card.id);
+    const spent = monthTx.reduce((s,tx) => s+tx.amount, 0);
+    const limit = card.creditLimit || 0;
+    const available = limit > 0 ? Math.max(limit - spent, 0) : null;
+    const usedPct = limit > 0 ? Math.min((spent/limit)*100,100) : 0;
+    const barColor = usedPct >= 90 ? 'var(--red)' : usedPct >= 70 ? 'var(--amber)' : 'var(--green)';
+
+    // Payment info
+    const today = new Date();
+    const payDay = card.payDay || 0;
+    let payDueStr = payDay ? `Due on the ${ordinal(payDay)} of each month` : 'No due date set';
+    let daysUntilDue = null;
+    if (payDay) {
+      let dueDate = new Date(today.getFullYear(), today.getMonth(), payDay);
+      if (dueDate <= today) dueDate = new Date(today.getFullYear(), today.getMonth()+1, payDay);
+      daysUntilDue = Math.ceil((dueDate - today) / 86400000);
+      payDueStr = `Due ${dueDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})} (${daysUntilDue}d)`;
+    }
+
+    // Stop purchasing alert: if payment due in ≤5 days
+    const stopMsg = (daysUntilDue !== null && daysUntilDue <= 5)
+      ? `<div style="margin-bottom:12px;padding:10px 12px;border-radius:8px;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);font-size:12px;color:var(--red)">⚠️ Payment due in ${daysUntilDue} day${daysUntilDue!==1?'s':''}. Consider pausing new purchases on this card.</div>`
+      : '';
+
+    // Recent payments for this card
+    const payments = (cardPayments[card.id] || []).slice(0,3);
+    const paymentsHtml = payments.length > 0
+      ? payments.map(p => `<div class="payment-item">
+          <div class="payment-item-left"><div class="payment-item-icon">✅</div>
+            <div><div class="payment-item-date">${p.date}</div>
+            <div class="payment-item-src">${p.source==='gmail'?'📧 Gmail':'✏️ Manual'}</div></div></div>
+          <div class="payment-item-amount">+$${p.amount.toFixed(2)}</div></div>`).join('')
+      : `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px">No payments logged yet</div>`;
+
+    return `<div class="card-full" style="--card-color:${card.color}">
+      <div style="position:absolute;top:0;left:0;width:6px;height:100%;background:${card.color};border-radius:var(--radius) 0 0 var(--radius)"></div>
+      <div class="card-full-header">
+        <div class="card-full-icon" style="background:${card.color}22">💳</div>
+        <div style="flex:1">
+          <div class="card-full-name">${card.name}</div>
+          <div class="card-full-sub">•••• ${card.last4} · ${card.type||'credit'}</div>
+        </div>
+        <button class="card-full-edit" onclick="openEditCardModal('${card.id}')">Edit</button>
+      </div>
+      ${stopMsg}
+      <div class="card-stats-row">
+        <div class="card-stat">
+          <div class="card-stat-label">Spent</div>
+          <div class="card-stat-value" style="color:var(--red)">$${spent.toFixed(0)}</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-label">Available</div>
+          <div class="card-stat-value" style="color:var(--green)">${available!==null?'$'+available.toLocaleString():'—'}</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-label">Limit</div>
+          <div class="card-stat-value">${limit>0?'$'+limit.toLocaleString():'—'}</div>
+        </div>
+      </div>
+      ${limit>0?`<div class="card-credit-bar">
+        <div class="card-credit-bar-label"><span>${usedPct.toFixed(0)}% used</span><span>$${available.toLocaleString()} free</span></div>
+        <div class="card-credit-bar-track"><div class="card-credit-bar-fill" style="width:${usedPct}%;background:${barColor}"></div></div>
+      </div>`:''}
+      <div class="card-payment-row" onclick="openEditCardModal('${card.id}')">
+        <div class="card-payment-icon">📅</div>
+        <div><div class="card-payment-label">Next Payment Due</div>
+        <div class="card-payment-value" style="color:${daysUntilDue!==null&&daysUntilDue<=5?'var(--red)':daysUntilDue!==null&&daysUntilDue<=10?'var(--amber)':'var(--text)'}">${payDueStr}</div></div>
+        <div class="card-payment-action">›</div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="form-label" style="margin:0">Payment History</div>
+          <button style="padding:5px 12px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer" onclick="openLogPaymentModal('${card.id}')">+ Log Payment</button>
+        </div>
+        ${paymentsHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n%100;
+  return n+(s[(v-20)%10]||s[v]||s[0]);
+}
+
+// ============================================================
+// PAYMENT ALERTS — dashboard banners
+// ============================================================
+function checkPaymentAlerts() {
+  const today = new Date();
+  const alerts = [];
+  CARDS.forEach(card => {
+    if (!card.payDay) return;
+    let dueDate = new Date(today.getFullYear(), today.getMonth(), card.payDay);
+    if (dueDate <= today) dueDate = new Date(today.getFullYear(), today.getMonth()+1, card.payDay);
+    const days = Math.ceil((dueDate - today) / 86400000);
+    if (days <= 7) {
+      alerts.push({ card, days, dueDate });
+    }
+  });
+
+  const banner = document.getElementById('paymentAlertBanner');
+  if (!banner) return;
+  if (alerts.length === 0) { banner.classList.remove('visible'); return; }
+
+  const urgent = alerts.find(a => a.days <= 3);
+  const isWarn = !urgent;
+  banner.className = `payment-alert visible${isWarn?' warn':''}`;
+  document.getElementById('payAlertIcon').textContent = urgent ? '🚨' : '🔔';
+
+  const lines = alerts.map(a =>
+    `${a.card.name} (••${a.card.last4}) — due ${a.dueDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})} (${a.days}d)`
+  ).join('<br>');
+  document.getElementById('payAlertText').innerHTML =
+    `<strong>${urgent?'Urgent: Payment due soon!':'Upcoming card payments'}</strong>${lines}${alerts.some(a=>a.days<=5)?'<br><span style="color:var(--red)">Consider pausing purchases on these cards.</span>':''}`;
+}
+
+// ============================================================
+// PREDICTED SPEND — 6-month average with 80% warning
+// ============================================================
+function renderPredictedSpend(f) {
+  const el = document.getElementById('predictBar');
+  if (!el) return;
+  const now = new Date();
+  const monthTotals = [];
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const txs = getMonthTransactions(d.getFullYear(), d.getMonth(), 'all');
+    const total = txs.reduce((s,tx) => s+tx.amount, 0);
+    if (total > 0) monthTotals.push(total);
+  }
+  if (monthTotals.length < 2) { el.style.display = 'none'; return; }
+
+  const predicted = monthTotals.reduce((s,v) => s+v, 0) / monthTotals.length;
+  const currentSpent = f.reduce((s,tx) => s+tx.amount, 0);
+  const pct = Math.min((currentSpent/predicted)*100, 110);
+  const warn80 = pct >= 80;
+
+  el.style.display = 'block';
+  document.getElementById('predictSpentLabel').textContent = `$${currentSpent.toFixed(0)} of predicted $${predicted.toFixed(0)}`;
+  document.getElementById('predictedLabel').textContent = `${pct.toFixed(0)}%`;
+  const fill = document.getElementById('predictBarFill');
+  fill.style.width = Math.min(pct,100)+'%';
+  fill.className = 'predict-bar-fill' + (pct>=100?' over':pct>=80?' warn':'');
+
+  // Also show warning banner if ≥80%
+  if (warn80) {
+    const msg = pct >= 100
+      ? `You've exceeded your predicted monthly spend of <strong>$${predicted.toFixed(0)}</strong>.`
+      : `You've reached ${pct.toFixed(0)}% of your predicted monthly spend (<strong>$${predicted.toFixed(0)}</strong>). Approaching your usual limit.`;
+    showSyncBar(pct>=100?'error':'syncing', pct>=100?'⚠️':'📊', msg);
+  }
+}
+
+// ============================================================
+// AUTO-POST SUBSCRIPTIONS — insert tx on debit day if not already posted
+// ============================================================
+function autoPostSubscriptions() {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  let added = 0;
+
+  subscriptions.filter(s => s.active && s.debitDay && s.cycle === 'monthly').forEach(sub => {
+    const debitDay = sub.debitDay;
+    if (today.getDate() < debitDay) return; // Not yet due this month
+    const expectedDate = `${currentMonthStr}-${String(debitDay).padStart(2,'0')}`;
+
+    // Check if already posted this month
+    const alreadyPosted = transactions.some(tx =>
+      tx.date === expectedDate &&
+      tx.merchant.toLowerCase().includes(sub.name.toLowerCase().substring(0,5)) &&
+      tx.source === 'subscription'
+    );
+    if (alreadyPosted) return;
+
+    // Auto-post it
+    transactions.push({
+      id: nextId++,
+      amount: sub.amount,
+      merchant: sub.name,
+      card: sub.cardId,
+      category: sub.category,
+      date: expectedDate,
+      time: '00:01',
+      source: 'subscription',
+    });
+    added++;
+  });
+
+  if (added > 0) {
+    saveToStorage();
+    showSyncBar('success', '🔄', `<strong>${added} subscription${added>1?'s':''}</strong> auto-posted for this month`);
+  }
+}
+
+// ============================================================
+// PAYMENT LOGGING — manual + Gmail
+// ============================================================
+function openLogPaymentModal(cardId) {
+  document.getElementById('editCardOverlay')?.remove();
+  const card = CARDS.find(c => c.id === cardId);
+  if (!card) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'logPaymentOverlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div class="modal" style="padding-bottom:calc(20px + var(--safe-bottom))">
+      <div class="modal-top">
+        <h2>Log Payment</h2>
+        <button class="modal-close" onclick="document.getElementById('logPaymentOverlay').remove()">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Recording a payment for <strong style="color:var(--text)">${card.name} ••••${card.last4}</strong></div>
+      <div class="form-group">
+        <label class="form-label">Payment Amount ($)</label>
+        <input type="number" class="form-input" id="paymentAmount" placeholder="0.00" step="0.01" inputmode="decimal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Date</label>
+        <input type="date" class="form-input" id="paymentDate" value="${new Date().toISOString().split('T')[0]}">
+      </div>
+      <button class="submit-btn green" onclick="savePayment('${cardId}','manual')">Save Payment</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function savePayment(cardId, source, amount=null, date=null) {
+  const payAmt = amount || parseFloat(document.getElementById('paymentAmount')?.value);
+  const payDate = date || document.getElementById('paymentDate')?.value;
+  if (!payAmt || payAmt <= 0 || !payDate) { if (!amount) alert('Please enter a valid amount'); return; }
+  if (!cardPayments[cardId]) cardPayments[cardId] = [];
+  // Avoid duplicate from same source+date
+  const exists = cardPayments[cardId].some(p => p.date === payDate && Math.abs(p.amount - payAmt) < 0.01);
+  if (!exists) {
+    cardPayments[cardId].unshift({ date: payDate, amount: payAmt, source });
+    if (cardPayments[cardId].length > 20) cardPayments[cardId].pop();
+    saveToStorage();
+    showSyncBar('success', '✅', `Payment of <strong>$${payAmt.toFixed(2)}</strong> recorded for ${CARDS.find(c=>c.id===cardId)?.name||cardId}`);
+  }
+  document.getElementById('logPaymentOverlay')?.remove();
+  renderCardsPage();
+}
+
+// ============================================================
+// GMAIL PAYMENT DETECTION — parse payment confirmation emails
+// ============================================================
+function parsePaymentEmail(fullText, dateHeader, issuer, issuerCards) {
+  // Only process payment emails
+  const isPayment = /payment\s*(received|confirmed|processed|posted|successful)|thank\s*you\s*for\s*your\s*payment|we.ve\s*received|payment\s*of/i.test(fullText);
+  if (!isPayment) return null;
+
+  const amountPatterns = [
+    /payment\s*(?:of|amount|received)[:\s]*\$?\s*([\d,]+\.\d{2})/i,
+    /\$\s*([\d,]+\.\d{2})\s*(?:payment|has been)/i,
+    /\$\s*([\d,]+\.\d{2})/,
+  ];
+  let amount = null;
+  for (const p of amountPatterns) {
+    const m = fullText.match(p);
+    if (m) { amount = parseFloat(m[1].replace(/,/g,'')); break; }
+  }
+  if (!amount || amount <= 0 || amount > 100000) return null;
+
+  const date = extractDate(fullText, dateHeader);
+
+  // Match card by last4
+  let cardId = issuerCards[0]?.id;
+  const last4Match = fullText.match(/(?:card|ending|account)\s*(?:ending in|ending|number)?[\s*x]*(\d{4})/i);
+  if (last4Match) {
+    const found = issuerCards.find(c => c.last4 === last4Match[1]);
+    if (found) cardId = found.id;
+  }
+  if (!cardId) return null;
+
+  return { cardId, amount, date };
+}
+
+// ============================================================
+// VERSION TAG
+// ============================================================
+// v5.0
 
 // Init Google Auth once GIS loads
 window.addEventListener('load', () => {
